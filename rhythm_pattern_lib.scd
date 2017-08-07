@@ -1,18 +1,20 @@
 ~loader = PatternReader("rhythm_patterns");
+
 ~allPatterns = ~loader.loadAll;
+
+(
 ~sparsePatterns = ~allPatterns.collect(
 	SparsePattern(_)).collect(_.makeSparse
 ).collect(_.patterns);
+)
 
 ~sparsePatterns.keys(Array).do(_.postln)
 
 (
 
-~seq = ~sparsePatterns['tiriba'];
+~seq = ~sparsePatterns['Yanvalou'];
 // mass generate SynthDefs to save typing
 ~ugens = [LFNoise2, LFSaw, LFPulse, SinOsc, VarSaw, LFNoise0, LFTri, SinOsc, SinOsc, VarSaw];
-
-//~ugens = PinkNoise.dup(11);
 
 ~defs = ~ugens.collect({|ugen, i|
 	SynthDef((ugen.name.asString.toLower ++ i.asString).asSymbol, {arg freq, amp, dur, pan;
@@ -24,25 +26,23 @@
 
 )
 
-~defs.do({arg def; def.add })
-
 ~defs.do(_.add);
 
 ~bpm = 120;
 ~bps = ~bpm / 60;
 ~delta = ~bps.reciprocal / 4
 
+
 (
 ~freqs = Array.geom(11, 121.0, 2**(1/5));
-// ~seq = Array.fill(10, { Array.fill(64, { [1, 0].wchoose([0.05, 0.95]) }) });
-~binds = ~ugens.collect({|ugen, i|
+~binds = ~seq.collect({|seq, i|
 	Pbind(
-		'instrument', ~defs[i].name,// (ugen.name.asString.toLower ++ i.asString).asSymbol,
+		'instrument', ~defs[i].name,
 		'freq', ~freqs[i],
 		'amp', Pwhite(0.2, 0.5, inf),
 		'dur', Pbrown(0.05, 0.3, 0.06, inf),
 		'delta', Pfunc({ ~delta }),
-		'type', Pseq(~seq[i].replace(0, \rest).replace(1, \note), inf),
+		'type', Pseq(seq.replace(0, \rest).replace(1, \note), inf),
 		'pan', Pwhite(-1.0, 1.0, inf)
 	)
 })
@@ -64,4 +64,4 @@ Pdef('rhythm').stop
 
 ~rev.free
 
-~rev.set('revamp', 0.1, 'revtime', 0.9)
+~rev.set('revamp', 0.1, 'revtime', 1.4)
